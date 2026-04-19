@@ -87,18 +87,4 @@ Optional (auto-filled): `occupancy_rate, pop_shift, rtm_price, uc_price, declara
 
 ---
 
-## Upgrade Summary vs Original
 
-| | Original | This Version |
-|---|---|---|
-| Routes | 1 hardcoded | 3 blueprints (dashboard / api / upload) |
-| Data | 4 rows · 8 cols | 15 zones · 15+ cols (all 4 streams) |
-| GVS | Raw arithmetic | Normalised weighted formula + tier classifier |
-| Charts | 1 bar | 6 Plotly charts (GVS, price, RTM/UC, yield, forecast, bubble) |
-| Map | Red circles | Dark tiles, tier-colored, styled popup tables |
-| Template | 12-line plain HTML | Full dashboard: KPIs · sliders · map · charts · table · upload |
-| API | None | 7 endpoints (GET + POST) |
-| Upload | None | Browser CSV upload + REST POST endpoints |
-
----
-*CyberJoar AI · OC.41335.2026.59218 · Deadline 20 April 2026 5PM*
