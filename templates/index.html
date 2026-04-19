@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanPulse — Predictive Growth Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Plotly CDN -->
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════════
+   URBANPULSE — Industrial Data-Terminal Design System
+   Barlow Condensed headlines · IBM Plex Mono data
+   Slate background · Amber accent · Tier-coded colors
+   ═══════════════════════════════════════════════════════ */
+:root {
+  --bg:      #07090d;
+  --s1:      #0e1118;
+  --s2:      #151922;
+  --s3:      #1d2330;
+  --border:  #272e3d;
+  --border2: #323c50;
+  --amber:   #f5a623;
+  --green:   #3ddc84;
+  --red:     #ff4757;
+  --blue:    #4d9fff;
+  --teal:    #2ec4b6;
+  --text:    #d4dce8;
+  --text2:   #8896ae;
+  --text3:   #4e5a70;
+  --head:    'Barlow Condensed', sans-serif;
+  --body:    'Barlow', sans-serif;
+  --mono:    'IBM Plex Mono', monospace;
+  --r:       4px;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--text); font-family:var(--body); font-size:13px; min-height:100vh; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+/* ══════════════════
+   TOP BAR
+   ══════════════════ */
+#topbar {
+  position: sticky; top: 0; z-index: 1000;
+  background: var(--s1); border-bottom: 1px solid var(--border);
+  display: flex; align-items: stretch; height: 52px;
+}
+.tb-brand {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 24px; border-right: 1px solid var(--border);
+  min-width: 220px;
+}
+.tb-logo {
+  font-family: var(--head); font-size: 1.4rem; font-weight: 900;
+  letter-spacing: 1px; color: var(--amber); text-transform: uppercase;
+}
+.tb-logo span { color: var(--text2); font-weight: 400; font-size: 0.85rem; }
+.tb-pill {
+  font-family: var(--mono); font-size: 0.56rem;
+  padding: 3px 8px; border: 1px solid var(--amber); color: var(--amber);
+  border-radius: 2px; text-transform: uppercase; letter-spacing: 1px;
+  animation: pulse-pill 2s ease-in-out infinite;
+}
+@keyframes pulse-pill { 0%,100%{opacity:1} 50%{opacity:0.45} }
+
+.tb-kpis { display: flex; flex: 1; overflow-x: auto; }
+.kpi-cell {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 20px; border-right: 1px solid var(--border);
+  min-width: 130px; flex-shrink: 0;
+}
+.kpi-val {
+  font-family: var(--mono); font-size: 1.05rem; font-weight: 600;
+  line-height: 1; white-space: nowrap;
+}
+.kpi-label {
+  font-size: 0.56rem; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text3); margin-top: 3px;
+}
+.tb-actions {
+  display: flex; align-items: center; gap: 8px; padding: 0 16px; flex-shrink: 0;
+}
+.btn {
+  font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase;
+  letter-spacing: 0.5px; padding: 7px 14px;
+  background: var(--s2); border: 1px solid var(--border2);
+  color: var(--text); border-radius: var(--r); cursor: pointer;
+  transition: all 0.18s; white-space: nowrap;
+}
+.btn:hover  { border-color: var(--amber); color: var(--amber); }
+.btn.amber  { background: var(--amber); color: var(--bg); border-color: var(--amber); font-weight: 700; }
+.btn.amber:hover { background: #d4891e; }
+#clock { font-family: var(--mono); font-size: 0.68rem; color: var(--text3); min-width: 70px; text-align: right; }
+
+/* ══════════════════
+   PAGE LAYOUT
+   ══════════════════ */
+.page-wrap { max-width: 1600px; margin: 0 auto; padding: 20px 20px 40px; }
+
+/* Section heading */
+.sec-head {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+.sec-title {
+  font-family: var(--head); font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2px; color: var(--text3);
+}
+.sec-line { flex: 1; height: 1px; background: var(--border); }
+
+/* ── Weights bar ── */
+#weights-bar {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px 20px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.w-label {
+  font-size: 0.62rem; color: var(--text3); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.w-group { display: flex; flex-direction: column; gap: 2px; min-width: 160px; flex: 1; }
+.w-row { display: flex; align-items: center; gap: 8px; }
+.w-name { font-size: 0.65rem; color: var(--text2); width: 80px; flex-shrink: 0; }
+input[type=range] {
+  flex: 1; appearance: none; height: 3px;
+  background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--amber);
+  border: 2px solid var(--bg); cursor: pointer;
+}
+.w-val {
+  font-family: var(--mono); font-size: 0.62rem;
+  color: var(--amber); width: 32px; text-align: right;
+}
+#weights-bar form { display: contents; }
+#w-apply { align-self: flex-end; }
+
+/* ── MAP + LEGEND ── */
+#map-section { display: grid; grid-template-columns: 1fr 220px; gap: 16px; margin-bottom: 20px; }
+#map-box {
+  background: var(--s1); border: 1px solid var(--border); border-radius: var(--r);
+  overflow: hidden; height: 480px;
+}
+#map-box iframe, #map-box > div { width: 100% !important; height: 100% !important; }
+
+.legend-panel {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 14px;
+}
+.legend-title {
+  font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text3);
+}
+.legend-items { display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.67rem; color: var(--text2); }
+.legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.mini-kpi { background: var(--s2); border: 1px solid var(--border); border-radius: 3px; padding: 8px 10px; }
+.mini-kpi-val { font-family: var(--mono); font-size: 0.88rem; font-weight: 600; }
+.mini-kpi-lbl { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-top: 2px; }
+
+/* ── CHART GRIDS ── */
+.chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.chart-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.chart-box {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px; overflow: hidden;
+}
+.chart-box-full { grid-column: 1 / -1; }
+
+/* ── DATA TABLE ── */
+.table-wrap {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: auto; margin-bottom: 20px;
+}
+table.data-table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+table.data-table thead th {
+  background: var(--s2); padding: 10px 12px;
+  text-align: left; font-family: var(--mono); font-size: 0.6rem;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text3);
+  border-bottom: 1px solid var(--border2); white-space: nowrap; position: sticky; top: 0;
+}
+table.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+table.data-table tbody tr:hover { background: var(--s2); }
+table.data-table tbody td { padding: 9px 12px; white-space: nowrap; }
+td.mono { font-family: var(--mono); }
+td.up   { color: var(--green); font-family: var(--mono); }
+td.am   { color: var(--amber); font-family: var(--mono); }
+td.rd   { color: var(--red);   font-family: var(--mono); }
+td.tl   { color: var(--teal);  font-family: var(--mono); }
+.tier-badge {
+  display: inline-block; font-size: 0.56rem; font-family: var(--mono);
+  padding: 2px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.tier-critical { background: rgba(255,71,87,0.15); color: #ff4757; border: 1px solid rgba(255,71,87,0.3); }
+.tier-high     { background: rgba(245,166,35,0.15); color: #f5a623; border: 1px solid rgba(245,166,35,0.3); }
+.tier-moderate { background: rgba(77,159,255,0.15); color: #4d9fff; border: 1px solid rgba(77,159,255,0.3); }
+.tier-low      { background: rgba(78,90,112,0.2);   color: #8896ae; border: 1px solid rgba(78,90,112,0.3); }
+
+/* ── UPLOAD SECTION ── */
+.upload-section {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px; margin-bottom: 20px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+}
+.upload-box {
+  border: 1px dashed var(--border2); border-radius: var(--r); padding: 20px;
+  text-align: center; cursor: pointer; transition: all 0.18s;
+}
+.upload-box:hover { border-color: var(--amber); background: rgba(245,166,35,0.03); }
+.upload-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.upload-title { font-family: var(--head); font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+.upload-sub { font-size: 0.63rem; color: var(--text3); margin-bottom: 12px; }
+.upload-required {
+  background: var(--s2); border-radius: 3px; padding: 8px 10px;
+  font-family: var(--mono); font-size: 0.58rem; color: var(--text3);
+  text-align: left; line-height: 1.8;
+}
+.upload-required strong { color: var(--text2); }
+
+.api-box { display: flex; flex-direction: column; gap: 8px; }
+.api-row {
+  background: var(--s2); border: 1px solid var(--border); border-radius: 3px;
+  padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+}
+.api-method {
+  font-family: var(--mono); font-size: 0.6rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 2px;
+}
+.get  { background: rgba(61,220,132,0.15); color: var(--green); border: 1px solid rgba(61,220,132,0.3); }
+.post { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+.api-path { font-family: var(--mono); font-size: 0.65rem; color: var(--text); flex: 1; }
+.api-desc { font-size: 0.6rem; color: var(--text3); white-space: nowrap; }
+
+/* ── UPLOAD RESPONSE LOG ── */
+#upload-log {
+  background: var(--s3); border-radius: 3px; padding: 8px 10px;
+  font-family: var(--mono); font-size: 0.6rem; color: var(--text3);
+  min-height: 28px; margin-top: 8px; display: none;
+}
+#upload-log.ok  { color: var(--green); border: 1px solid rgba(61,220,132,0.2); }
+#upload-log.err { color: var(--red);   border: 1px solid rgba(255,71,87,0.2);  }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+  background: var(--s1); border: 1px solid var(--green); color: var(--green);
+  padding: 9px 18px; border-radius: var(--r);
+  font-family: var(--mono); font-size: 0.68rem;
+  transform: translateY(80px); opacity: 0; transition: all 0.28s ease;
+  pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 16px;
+  font-size: 0.62rem; color: var(--text3); font-family: var(--mono);
+  border-top: 1px solid var(--border);
+}
+footer span { color: var(--amber); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .chart-grid-2, .chart-grid-3 { grid-template-columns: 1fr; }
+  #map-section { grid-template-columns: 1fr; }
+  .upload-section { grid-template-columns: 1fr; }
+  .tb-kpis { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     TOP BAR — KPI cells auto-filled by Flask
+     ══════════════════════════════════════════ -->
+<div id="topbar">
+  <div class="tb-brand">
+    <div>
+      <div class="tb-logo">Urban<span>Pulse</span></div>
+    </div>
+    <div class="tb-pill">● Live</div>
+  </div>
+
+  <div class="tb-kpis">
+    <div class="kpi-cell">
+      <div class="kpi-val" style="color:var(--amber)">{{ stats.total_zones }}</div>
+      <div class="kpi-label">Zones Tracked</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-val" style="color:var(--red)">{{ stats.hotspot_count }}</div>
+      <div class="kpi-label">Critical Hotspots</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-val" style="color:var(--green)">{{ stats.avg_gvs }}</div>
+      <div class="kpi-label">Avg GVS Score</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-val" style="color:var(--blue)">{{ stats.total_listings }}</div>
+      <div class="kpi-label">Total Listings</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-val" style="color:var(--teal)">{{ stats.avg_yield }}%</div>
+      <div class="kpi-label">Avg Rental Yield</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-val" style="color:var(--amber)">+{{ stats.avg_appreciation }}%</div>
+      <div class="kpi-label">Avg Price Growth</div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-val">{{ stats.top_zone }}</div>
+      <div class="kpi-label">Top Zone · GVS {{ stats.top_gvs }}</div>
+    </div>
+  </div>
+
+  <div class="tb-actions">
+    <button class="btn" onclick="exportCSV()">↓ Export</button>
+    <button class="btn" onclick="document.getElementById('upload-section-anchor').scrollIntoView({behavior:'smooth'})">↑ Upload</button>
+    <div id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE CONTENT
+     ══════════════════════════════════════════ -->
+<div class="page-wrap">
+
+  <!-- ── WEIGHT SLIDERS ── -->
+  <div id="weights-bar">
+    <div>
+      <div class="w-label">GVS Weight Configuration</div>
+      <div style="font-size:0.62rem;color:var(--text3);margin-top:3px">Adjust → Apply to recompute all scores</div>
+    </div>
+    <form method="GET" action="/" id="weights-form" style="display:contents">
+      <div class="w-group">
+        <div class="w-row">
+          <div class="w-name">Pricing</div>
+          <input type="range" name="pricing" id="sl-pricing"
+            min="0.05" max="0.70" step="0.01"
+            value="{{ weights.pricing }}"
+            oninput="document.getElementById('vl-pricing').textContent=parseFloat(this.value).toFixed(2)">
+          <div class="w-val" id="vl-pricing">{{ "%.2f"|format(weights.pricing) }}</div>
+        </div>
+        <div class="w-row">
+          <div class="w-name">Rental</div>
+          <input type="range" name="rental" id="sl-rental"
+            min="0.05" max="0.70" step="0.01"
+            value="{{ weights.rental }}"
+            oninput="document.getElementById('vl-rental').textContent=parseFloat(this.value).toFixed(2)">
+          <div class="w-val" id="vl-rental">{{ "%.2f"|format(weights.rental) }}</div>
+        </div>
+      </div>
+      <div class="w-group">
+        <div class="w-row">
+          <div class="w-name">Infra</div>
+          <input type="range" name="infra" id="sl-infra"
+            min="0.05" max="0.70" step="0.01"
+            value="{{ weights.infra }}"
+            oninput="document.getElementById('vl-infra').textContent=parseFloat(this.value).toFixed(2)">
+          <div class="w-val" id="vl-infra">{{ "%.2f"|format(weights.infra) }}</div>
+        </div>
+        <div class="w-row">
+          <div class="w-name">Listings</div>
+          <input type="range" name="listings" id="sl-listings"
+            min="0.05" max="0.70" step="0.01"
+            value="{{ weights.listings }}"
+            oninput="document.getElementById('vl-listings').textContent=parseFloat(this.value).toFixed(2)">
+          <div class="w-val" id="vl-listings">{{ "%.2f"|format(weights.listings) }}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+        <button type="submit" class="btn amber" id="w-apply">▶ Apply Weights</button>
+        <a href="/" class="btn" style="text-decoration:none;text-align:center">↺ Reset</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── MAP + LEGEND ── -->
+  <div class="sec-head"><div class="sec-title">Geospatial Heatmap</div><div class="sec-line"></div></div>
+  <div id="map-section">
+    <div id="map-box">{{ map_html | safe }}</div>
+    <div class="legend-panel">
+      <div>
+        <div class="legend-title">GVS Tier Legend</div>
+        <div class="legend-items" style="margin-top:10px">
+          <div class="legend-item"><div class="legend-dot" style="background:#ff4757"></div> Critical Hotspot (80–100)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f5a623"></div> High Growth (60–79)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4d9fff"></div> Moderate Growth (40–59)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#6b7280"></div> Low Activity (&lt;40)</div>
+          <div class="legend-item" style="font-size:0.6rem;color:var(--text3);margin-top:4px">⬤ size ∝ GVS score<br>● green border = infra declared</div>
+        </div>
+      </div>
+      <div>
+        <div class="legend-title">Quick Stats</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+          <div class="mini-kpi">
+            <div class="mini-kpi-val" style="color:var(--red)">{{ stats.hotspot_count }}</div>
+            <div class="mini-kpi-lbl">Critical Hotspots</div>
+          </div>
+          <div class="mini-kpi">
+            <div class="mini-kpi-val" style="color:var(--amber)">{{ stats.high_growth }}</div>
+            <div class="mini-kpi-lbl">High Growth Zones</div>
+          </div>
+          <div class="mini-kpi">
+            <div class="mini-kpi-val" style="color:var(--green)">+{{ stats.avg_forecast }}%</div>
+            <div class="mini-kpi-lbl">Avg 24M Forecast</div>
+          </div>
+          <div class="mini-kpi">
+            <div class="mini-kpi-val" style="color:var(--teal)">{{ stats.avg_yield }}%</div>
+            <div class="mini-kpi-lbl">Avg Rental Yield</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS ROW 1: GVS BAR + FORECAST ── -->
+  <div class="sec-head"><div class="sec-title">Growth Velocity Scores</div><div class="sec-line"></div></div>
+  <div class="chart-grid-2">
+    <div class="chart-box">{{ chart_gvs | safe }}</div>
+    <div class="chart-box">{{ chart_forecast | safe }}</div>
+  </div>
+
+  <!-- ── CHARTS ROW 2: PRICE + YIELD ── -->
+  <div class="sec-head"><div class="sec-title">Pricing & Rental Analytics</div><div class="sec-line"></div></div>
+  <div class="chart-grid-2">
+    <div class="chart-box">{{ chart_price | safe }}</div>
+    <div class="chart-box">{{ chart_yield | safe }}</div>
+  </div>
+
+  <!-- ── CHARTS ROW 3: RTM/UC SCATTER + BUBBLE ── -->
+  <div class="sec-head"><div class="sec-title">Market Intelligence</div><div class="sec-line"></div></div>
+  <div class="chart-grid-2">
+    <div class="chart-box">{{ chart_rtm_uc | safe }}</div>
+    <div class="chart-box">{{ chart_scatter | safe }}</div>
+  </div>
+
+  <!-- ── DATA TABLE ── -->
+  <div class="sec-head"><div class="sec-title">Zone Data Table</div><div class="sec-line"></div></div>
+  <div class="table-wrap">
+    <table class="data-table" id="zone-table">
+      <thead>
+        <tr>
+          <th>Zone</th>
+          <th>Tier</th>
+          <th>GVS</th>
+          <th>Price 2022</th>
+          <th>Price 2024</th>
+          <th>Growth %</th>
+          <th>RTM ₹/sqft</th>
+          <th>UC ₹/sqft</th>
+          <th>RTM Premium</th>
+          <th>Rent/mo</th>
+          <th>Yield %</th>
+          <th>Occupancy</th>
+          <th>Listings</th>
+          <th>Infra</th>
+          <th>Decl.</th>
+          <th>24M Forecast</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for z in zones | sort(attribute='gvs', reverse=True) %}
+        {% if z.tier == "Critical Hotspot" %}
+          {% set tc = "tier-critical" %}
+        {% elif z.tier == "High Growth" %}
+          {% set tc = "tier-high" %}
+        {% elif z.tier == "Moderate Growth" %}
+          {% set tc = "tier-moderate" %}
+        {% else %}
+          {% set tc = "tier-low" %}
+        {% endif %}
+        <tr>
+          <td><strong>{{ z.area }}</strong></td>
+          <td><span class="tier-badge {{ tc }}">{{ z.tier }}</span></td>
+          <td class="am">{{ z.gvs }}</td>
+          <td class="mono">₹{{ "{:,.0f}".format(z.price_2022) }}</td>
+          <td class="mono">₹{{ "{:,.0f}".format(z.price_2024) }}</td>
+          <td class="up">+{{ z.price_growth_pct }}%</td>
+          <td class="mono">₹{{ "{:,.0f}".format(z.rtm_price) }}</td>
+          <td class="mono">₹{{ "{:,.0f}".format(z.uc_price) }}</td>
+          <td class="am">{{ z.rtm_uc_pct }}%</td>
+          <td class="mono">₹{{ "{:,.0f}".format(z.rent) }}</td>
+          <td class="tl">{{ z.rental_yield_pct }}%</td>
+          <td class="mono">{{ z.occupancy_rate }}%</td>
+          <td class="mono">{{ z.listings }}</td>
+          <td class="mono">{{ z.infra }}/10</td>
+          <td class="mono">{{ z.declarations }}</td>
+          <td class="rd">+{{ z.forecast_24m }}%</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── UPLOAD + API ── -->
+  <div class="sec-head" id="upload-section-anchor">
+    <div class="sec-title">Data Ingestion & API Reference</div><div class="sec-line"></div>
+  </div>
+  <div class="upload-section">
+
+    <!-- CSV Upload -->
+    <div>
+      <div class="upload-box" onclick="document.getElementById('csv-file').click()">
+        <div class="upload-icon">📂</div>
+        <div class="upload-title">Upload CSV Data</div>
+        <div class="upload-sub">Replace zone data with your own CSV file</div>
+        <div class="upload-required">
+          <strong>Required columns:</strong><br>
+          area · price_2022 · price_2024 · rent<br>
+          listings · infra · lat · lng<br><br>
+          <strong>Optional (auto-filled if missing):</strong><br>
+          occupancy_rate · pop_shift · rtm_price<br>
+          uc_price · cagr_3y · declarations
+        </div>
+      </div>
+      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="uploadCSV(this)">
+      <div id="upload-log"></div>
+      <button class="btn" style="margin-top:8px;width:100%" onclick="document.getElementById('csv-file').click()">
+        Browse CSV File
+      </button>
+    </div>
+
+    <!-- API Reference -->
+    <div>
+      <div class="w-label" style="margin-bottom:10px">REST API Endpoints</div>
+      <div class="api-box">
+        <div class="api-row">
+          <span class="api-method get">GET</span>
+          <span class="api-path">/api/zones</span>
+          <span class="api-desc">All zones (JSON)</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method get">GET</span>
+          <span class="api-path">/api/zones/&lt;area&gt;</span>
+          <span class="api-desc">Single zone detail</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method get">GET</span>
+          <span class="api-path">/api/summary</span>
+          <span class="api-desc">KPI summary stats</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method get">GET</span>
+          <span class="api-path">/api/top?n=5</span>
+          <span class="api-desc">Top-N zones by GVS</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method get">GET</span>
+          <span class="api-path">/api/tier/critical</span>
+          <span class="api-desc">Filter by tier</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method post">POST</span>
+          <span class="api-path">/upload/csv</span>
+          <span class="api-desc">Upload CSV file</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method post">POST</span>
+          <span class="api-path">/upload/json</span>
+          <span class="api-desc">Upload JSON array</span>
+        </div>
+        <div class="api-row">
+          <span class="api-method get">GET</span>
+          <span class="api-path">/?pricing=0.40&amp;rental=0.30</span>
+          <span class="api-desc">Custom weights</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:0.6rem;color:var(--text3);line-height:1.7">
+        All GET endpoints return <span style="color:var(--green);font-family:var(--mono)">{"status":"ok","data":[...]}</span><br>
+        Weight sliders above submit to <span style="color:var(--amber);font-family:var(--mono)">/?pricing=&rental=&infra=&listings=</span>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /page-wrap -->
+
+<footer>
+  UrbanPulse · Predictive Real Estate Growth Analytics ·
+  Built with <span>Flask · Pandas · Plotly · Folium</span> ·
+  Kotagiri Kulbhushan
+</footer>
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     CLIENT-SIDE JS
+     ══════════════════════════════════════════ -->
+<script>
+/* ── Clock ── */
+function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString(); }
+tick(); setInterval(tick, 1000);
+
+/* ── Toast ── */
+function toast(msg, ok=true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = ok ? 'var(--green)' : 'var(--red)';
+  el.style.color        = ok ? 'var(--green)' : 'var(--red)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ── CSV Upload via Fetch ── */
+async function uploadCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const log = document.getElementById('upload-log');
+  log.style.display = 'block';
+  log.className = '';
+  log.textContent = `Uploading ${file.name}…`;
+
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res  = await fetch('/upload/csv', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      log.className = 'ok';
+      log.textContent = `✓ ${data.message}`;
+      toast(`✓ ${data.zones} zones ingested. Refreshing…`);
+      setTimeout(() => location.reload(), 1800);
+    } else {
+      log.className = 'err';
+      log.textContent = `✗ ${data.message}`;
+      toast(data.message, false);
+    }
+  } catch(e) {
+    log.className = 'err';
+    log.textContent = `✗ Network error: ${e.message}`;
+    toast('Upload failed', false);
+  }
+  input.value = '';
+}
+
+/* ── Export table as CSV ── */
+function exportCSV() {
+  const rows = [['Zone','Tier','GVS','Price2022','Price2024','Growth%','RTM','UC','RTMPrem%','Rent','Yield%','Occupancy','Listings','Infra','Decl','Forecast24M%']];
+  {% for z in zones %}
+  rows.push([
+    "{{ z.area }}", "{{ z.tier }}", {{ z.gvs }},
+    {{ z.price_2022 }}, {{ z.price_2024 }}, {{ z.price_growth_pct }},
+    {{ z.rtm_price }}, {{ z.uc_price }}, {{ z.rtm_uc_pct }},
+    {{ z.rent }}, {{ z.rental_yield_pct }}, {{ z.occupancy_rate }},
+    {{ z.listings }}, {{ z.infra }}, {{ z.declarations }}, {{ z.forecast_24m }}
+  ]);
+  {% endfor %}
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a   = document.createElement('a');
+  a.href    = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'urbanpulse_export_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  toast('✓ CSV exported');
+}
+
+/* ── Table row highlight on click ── */
+document.querySelectorAll('#zone-table tbody tr').forEach(row => {
+  row.style.cursor = 'pointer';
+  row.addEventListener('click', () => {
+    document.querySelectorAll('#zone-table tbody tr').forEach(r => r.style.background = '');
+    row.style.background = 'rgba(245,166,35,0.07)';
+  });
+});
+</script>
+</body>
+</html>
