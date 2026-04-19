@@ -87,4 +87,31 @@ Optional (auto-filled): `occupancy_rate, pop_shift, rtm_price, uc_price, declara
 
 ---
 
+## Design Approach
+
+During development, the main challenge was handling fragmented data sources.
+
+To address this:
+
+Infrastructure data is treated as a leading indicator
+Pricing & rental trends validate market demand
+Listing density reflects competition & saturation
+
+This combination helps simulate real-world investment decision logic.
+
+---
+
+## Output
+
+The system provides:
+
+Growth hotspots (high GVS zones)
+Market trend insights
+Future growth indicators
+Zone-wise analytics dashboard
+
+---
+
+## Dashboard Preview
+<p align="center"> <img src="dashboard.png" width="900"> </p>
 
